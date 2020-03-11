@@ -43,7 +43,7 @@ plt.plot(df_recovered_01)
 plt.show()
 
 df_confirmed=df_confirmed.fillna(value='')
-df_confirmed['Locatie']=df_confirmed['Province/State'].astype('string')+df_confirmed['Country/Region'].astype('string')
+df_confirmed['Locatie']=df_confirmed['Province/State'].astype('string')+'_'+df_confirmed['Country/Region'].astype('string')
 
 
 df_confirmed_ordered=df_confirmed.loc[df_confirmed['Date'] == Max_Date].sort_values(by='Value',ascending=False)
@@ -51,14 +51,14 @@ df_confirmed_ordered=df_confirmed.loc[df_confirmed['Date'] == Max_Date].sort_val
 df_confirmed_ordered=df_confirmed_ordered.reset_index().drop('index', axis=1)
 
 
+# plot top 10 locations (combination of first two columns)
 
-
-for i in range(2,6): 
+for i in range(1,30): 
     actualloc=df_confirmed_ordered['Locatie'].iloc[i]
     df_plot=df_confirmed[df_confirmed['Locatie']==actualloc].sort_values(by='Date')
     plt.plot(df_plot['Date'],df_plot['Value'])
 
-
+plt.savefig('top 30 excl Huwan China.jpg', dpi='figure')
 
 
 
