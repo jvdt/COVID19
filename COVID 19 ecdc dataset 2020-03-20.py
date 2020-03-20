@@ -7,6 +7,7 @@ Created on Sun Mar 15 16:20:03 2020
 
 import requests
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import date
@@ -15,13 +16,13 @@ from datetime import timedelta
 #https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide
 #https://www.geonames.org/countries/
 
-today = (date.today()- timedelta(2))
+today = (date.today()- timedelta(0))
 
 strLinkStart = 'https://www.ecdc.europa.eu/sites/default/files/documents/COVID-19-geographic-disbtribution-worldwide-'
 strLinkYear  = today.strftime("%Y") 
 strLinkMonth = today.strftime("%m")
 strLinkday   = today.strftime("%d")
-strLinkEnd   = '.xls'
+strLinkEnd   = '.xlsx'
 
 link_ecdc = strLinkStart+strLinkYear+'-'+strLinkMonth+'-'+strLinkday+strLinkEnd
 link_ecdc
@@ -64,15 +65,11 @@ df_ecdc_ordered.name = 'Countries and territories'
 df_ecdc_ordered.reset_index(inplace=True)
 
 
+#New cases
 
 
 
-
-
-
-
-plt.figure(figsize=[13,13])
-
+fig = plt.figure(figsize=[13,13])
 
 for i in range(0,9): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
@@ -83,6 +80,7 @@ for i in range(0,9):
 plt.xticks(rotation=90)
 plt.legend(df_ecdc_ordered['Countries and territories'].iloc[0:9])
 plt.title("Number of new confirmed cases",fontdict ={'fontsize':'28'})
+plt.grid()
 plt.savefig('Europe_New_Conf_Cases.jpg', dpi='figure')
 
 
@@ -99,6 +97,7 @@ for i in range(0,9):
 plt.xticks(rotation=90)
 plt.legend(df_ecdc_ordered['Countries and territories'].iloc[0:9])
 plt.title("Cum number of new confirmed cases",fontdict ={'fontsize':'28'})
+plt.grid()
 plt.savefig('Europe_New_Conf_Cases_Cum.jpg', dpi='figure')
 
 
@@ -124,6 +123,7 @@ for i in range(0,9):
 plt.xticks(rotation=90)
 plt.legend(df_ecdc_ordered['Countries and territories'].iloc[0:9])
 plt.title("Cum number of new confirmed cases",fontdict ={'fontsize':'28'})
+plt.grid()
 plt.savefig('Europe_New_Conf_Cases_Cum.jpg', dpi='figure')
 
 
@@ -147,6 +147,7 @@ for i in range(0,9):
 plt.xticks(rotation=90)
 plt.legend(df_ecdc_ordered['Countries and territories'].iloc[0:9])
 plt.title("Cum number of new confirmed cases",fontdict ={'fontsize':'28'})
+plt.grid()
 plt.savefig('Europe_New_Conf_Cases_Cum_From_day_0.jpg', dpi='figure')
 
 
@@ -167,24 +168,79 @@ for i in range(0,9):
 plt.xticks(rotation=90)
 plt.legend(df_ecdc_ordered['Countries and territories'].iloc[0:9])
 plt.title("Death rate on cum conf cases",fontdict ={'fontsize':'28'})
+plt.grid()
 plt.savefig('Europe_Death_rate_on_Conf_Cases_Cum_From_day_0.jpg', dpi='figure')
 
 
 
-plt.figure(figsize=[13,13])
+
+
+
+fig, ax = plt.subplots()
+fig.set_figheight(13)
+fig.set_figwidth(13)
+
 
 for i in range(0,9): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
     df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
     FirstDate = df_plot[df_plot['Cases']>0]['DateRep'].min()
-    df_plot = df_plot.loc[(df_plot['DateRep'] >= FirstDate)]
+    df_plot = df_plot.loc[(df_plot['DateRep'] >= FirstDate- timedelta(1))]
     df_plot.reset_index(inplace=True)
     df_plot.reset_index(inplace=True)
-    plt.plot(df_plot['level_0'],np.cumsum(df_plot['Cases']))
+    if(actualloc=='Netherlands'):
+        plt.plot(df_plot['level_0'],np.cumsum(df_plot['Cases']), linewidth=4)
+    else:
+        plt.plot(df_plot['level_0'],np.cumsum(df_plot['Cases']))
+            
+#    plt.plot(df_plot['level_0'],np.cumsum(df_plot['Cases']))
+    
 
 plt.xticks(rotation=90)
 plt.yscale("Log")
-plt.legend(df_ecdc_ordered['Countries and territories'].iloc[0:9])
+plt.legend(df_ecdc_ordered['Countries and territories'].iloc[0:9],loc=2, prop={'size':14})
 plt.title("Cum number of new confirmed cases",fontdict ={'fontsize':'28'})
+ax.set_axisbelow(True)
+ax.minorticks_on()
+ax.grid(which='major', linestyle='-', linewidth='0.7', color='black')
+ax.grid(which='minor', linestyle=':', linewidth='0.5', color='black')
+
 plt.savefig('Europe_New_Conf_Cases_Cum_From_day_0_logscale.jpg', dpi='figure')
+
+
+
+
+
+
+fig, ax = plt.subplots()
+fig.set_figheight(13)
+fig.set_figwidth(13)
+
+for i in range(0,15): 
+    actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
+    df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
+    FirstDate = df_plot[df_plot['Cases']>0]['DateRep'].min()
+    df_plot = df_plot.loc[(df_plot['DateRep'] >= FirstDate- timedelta(1))]
+    df_plot.reset_index(inplace=True)
+    df_plot.reset_index(inplace=True)
+    
+    CasusCum =np.cumsum(df_plot['Cases'])
+    
+    if(actualloc=='Netherlands'):
+        plt.plot(df_plot['level_0'],CasusCum/CasusCum.shift(1,fill_value=0), linewidth=4)
+    else:
+        plt.plot(df_plot['level_0'],CasusCum/CasusCum.shift(1,fill_value=0))
+        
+plt.ylim(ymin=0,ymax=3)
+plt.xlim(xmin=0)
+
+plt.xticks(rotation=90)
+plt.legend(df_ecdc_ordered['Countries and territories'].iloc[0:15],loc=1, prop={'size':14})
+plt.title("Cum number of new confirmed cases",fontdict ={'fontsize':'28'})
+ax.set_axisbelow(True)
+ax.minorticks_on()
+ax.grid(which='major', linestyle='-', linewidth='0.7', color='black')
+ax.grid(which='minor', linestyle=':', linewidth='0.5', color='black')
+plt.savefig('Europe_New_Conf_Cases_Cum_From_day_0_logscale.jpg', dpi='figure')
+
 
