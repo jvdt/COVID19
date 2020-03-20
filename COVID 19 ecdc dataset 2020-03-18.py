@@ -165,3 +165,21 @@ plt.title("Death rate on cum conf cases",fontdict ={'fontsize':'28'})
 plt.savefig('Europe_Death_rate_on_Conf_Cases_Cum_From_day_0.jpg', dpi='figure')
 
 
+
+plt.figure(figsize=[13,13])
+
+for i in range(0,9): 
+    actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
+    df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
+    FirstDate = df_plot[df_plot['Cases']>0]['DateRep'].min()
+    df_plot = df_plot.loc[(df_plot['DateRep'] >= FirstDate)]
+    df_plot.reset_index(inplace=True)
+    df_plot.reset_index(inplace=True)
+    plt.plot(df_plot['level_0'],np.cumsum(df_plot['Cases']))
+
+plt.xticks(rotation=90)
+plt.yscale("Log")
+plt.legend(df_ecdc_ordered['Countries and territories'].iloc[0:9])
+plt.title("Cum number of new confirmed cases",fontdict ={'fontsize':'28'})
+plt.savefig('Europe_New_Conf_Cases_Cum_From_day_0_logscale.jpg', dpi='figure')
+
