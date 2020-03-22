@@ -89,14 +89,20 @@ def SubPlot_finalization(ax):
 
 #plot prep
 
-fig, ((ax1, ax2), (ax3, ax4),(ax5)) = plt.subplots(3, 2)
+fig = plt.figure()
+ax1 = plt.subplot2grid((3, 2), (0, 0))
+ax2 = plt.subplot2grid((3, 2), (0, 1))
+ax3 = plt.subplot2grid((3, 2), (1, 0))
+ax4 = plt.subplot2grid((3, 2), (1, 1))
+ax5 = plt.subplot2grid((3, 2), (2, 0), colspan=2)
 fig.suptitle('Europe and The Netherlands\n Chosen startdate Europe: '+FirstDate.strftime("%d")+'-'+FirstDate.strftime("%m")+ '-' +FirstDate.strftime("%Y") ,fontsize=22,y=1.08)
 fig.set_figheight(22)
 fig.set_figwidth(18)
 
 
 
-ax1.set_title('Cumulative confirmed cases from first in Europe',fontsize=10)
+
+ax1.set_title('Cumulative confirmed cases from first in Europe',fontsize=16)
 for i in range(first_InOrder,9): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
     df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
@@ -112,7 +118,7 @@ SubPlot_finalization(ax1)
 
 
 #Cumulative from day zero in europe
-ax2.set_title('Cumulative confirmed cases from first in country',fontsize=10)
+ax2.set_title('Cumulative confirmed cases from first in country',fontsize=16)
 for i in range(first_InOrder,last__Inorder): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
     df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
@@ -129,7 +135,7 @@ SubPlot_finalization(ax2)
 
 
 
-ax3.set_title('Infectionrate on confirmed cases (n-1)',fontsize=10)
+ax3.set_title('Infectionrate on confirmed cases (n-1)',fontsize=16)
 for i in range(first_InOrder,last__Inorder): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
     df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
@@ -150,7 +156,7 @@ SubPlot_finalization(ax3)
 
 
 #death rate
-ax4.set_title('Deathrate on confirmed cases, cumulative',fontsize=10)
+ax4.set_title('Deathrate on confirmed cases, cumulative',fontsize=16)
 for i in range(first_InOrder,last__Inorder): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
     df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
@@ -166,7 +172,7 @@ SubPlot_finalization(ax4)
 
 
 
-ax5.set_title('Key parameteres',fontsize=10)
+ax5.set_title('Key parameteres',fontsize=20)
 
 clust_data = np.random.random((10,5))
 collabel=("Parameter", "Europe top " + str(last__Inorder)+"/nLast 10 days","Europe total" ,"The Netherlands/nLast 10 days","The Netherlands total")
@@ -174,11 +180,10 @@ ax5.axis('tight')
 ax5.axis('off')
 the_table = ax5.table(cellText=clust_data,colLabels=collabel,loc='center')
 
-ax6.plot(clust_data[:,0],clust_data[:,1])
 
 
 
-
-
-plt.tight_layout(pad=0.4, w_pad=1, h_pad=2.0)
+#plt.tight_layout(pad=0.4, w_pad=1, h_pad=2.0)
+plt.tight_layout()
+plt.subplots_adjust(top=0.88)
 plt.savefig('Europe.jpg', dpi='figure')
