@@ -59,6 +59,9 @@ df_ecdc = pd.merge(df_ecdc,
                  on='GeoId')
 
 
+df_ecdc_Continent = df_ecdc.groupby(['Continent'])['Cases','Deaths'].sum()
+
+
 # Dataprep and from here use df_ecdc_basis as startingpoint.
 df_ecdc_basis=df_ecdc[df_ecdc['Continent']=='EU']
 
@@ -66,6 +69,7 @@ df_ecdc_groupby = df_ecdc_basis.groupby(['Countries and territories','GeoId'])['
 df_ecdc_ordered = df_ecdc_groupby.sort_values(by=['Cases','Deaths'],ascending=False)
 df_ecdc_ordered.name = 'Countries and territories'
 df_ecdc_ordered.reset_index(inplace=True)
+
 
 
 df_ecdc_groupby = df_ecdc_basis.groupby(['Countries and territories','GeoId'])['Cases','Deaths'].sum()
@@ -94,31 +98,45 @@ ax1 = plt.subplot2grid((3, 2), (0, 0))
 ax2 = plt.subplot2grid((3, 2), (0, 1))
 ax3 = plt.subplot2grid((3, 2), (1, 0))
 ax4 = plt.subplot2grid((3, 2), (1, 1))
-ax5 = plt.subplot2grid((3, 2), (2, 0), colspan=2)
-fig.suptitle('Europe and The Netherlands\n Chosen startdate Europe: '+FirstDate.strftime("%d")+'-'+FirstDate.strftime("%m")+ '-' +FirstDate.strftime("%Y") ,fontsize=22,y=1.08)
+ax5 = plt.subplot2grid((3, 2), (2, 0))
+ax6 = plt.subplot2grid((3, 2), (2, 1))
 fig.set_figheight(22)
 fig.set_figwidth(18)
+fig.suptitle('Europe and The Netherlands\n Chosen startdate Europe: '+FirstDate.strftime("%d-%m-%Y") ,fontsize=22,y=1.08)
 
 
-
-
-ax1.set_title('Cumulative confirmed cases from first in Europe',fontsize=16)
+ax=ax1
+ax.set_title('Cumulative confirmed cases since' + FirstDate.strftime("%d-%m-%Y") ,fontsize=16)
 for i in range(first_InOrder,9): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
     df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
     if(actualloc == 'Netherlands'):
-        ax1.plot(df_plot['DateRep'],np.cumsum(df_plot['Cases']), linewidth=4)
+        ax.plot(df_plot['DateRep'],np.cumsum(df_plot['Cases']), linewidth=4)
     else:
-        ax1.plot(df_plot['DateRep'],np.cumsum(df_plot['Cases']))
+        ax.plot(df_plot['DateRep'],np.cumsum(df_plot['Cases']))
 ax1.set_xlabel('Date sinds first infection in Europe')
 ax1.set_ylabel('Cumualtive infection cases (confirmed)')
-SubPlot_finalization(ax1)
+SubPlot_finalization(ax)
 
+
+ax=ax2
+ax.set_title('Cumulative deaths since ' + FirstDate.strftime("%d-%m-%Y"),fontsize=16)
+for i in range(first_InOrder,9): 
+    actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
+    df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
+    if(actualloc == 'Netherlands'):
+        ax.plot(df_plot['DateRep'],np.cumsum(df_plot['Deaths']), linewidth=4)
+    else:
+        ax.plot(df_plot['DateRep'],np.cumsum(df_plot['Deaths']))
+ax1.set_xlabel('Date sinds first infection in Europe')
+ax1.set_ylabel('Cumualtive infection cases (confirmed)')
+SubPlot_finalization(ax)
 
 
 
 #Cumulative from day zero in europe
-ax2.set_title('Cumulative confirmed cases from first in country',fontsize=16)
+ax=ax3
+ax.set_title('Cumulative confirmed cases since first case in country',fontsize=16)
 for i in range(first_InOrder,last__Inorder): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
     df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
@@ -126,16 +144,38 @@ for i in range(first_InOrder,last__Inorder):
     df_plot = df_plot.loc[(df_plot['DateRep'] >= FirstDate)]
     df_plot.reset_index(inplace=True)
     df_plot.reset_index(inplace=True)
+    cumcases = np.cumsum(df_plot['Cases'])
    
     if(actualloc=='Netherlands'):
-        ax2.plot(df_plot['level_0'],np.cumsum(df_plot['Cases']), linewidth=4)
+        ax.plot(df_plot['level_0'],np.log10(cumcases), linewidth=4)
     else:
-        ax2.plot(df_plot['level_0'],np.cumsum(df_plot['Cases'])) 
-SubPlot_finalization(ax2)
+        ax.plot(df_plot['level_0'],np.log10(cumcases)) 
+SubPlot_finalization(ax)
+ax.set_yscale('log')
 
 
+#Cumulative from day zero in europe deaths
+ax=ax4
+ax.set_title('Cumulative confirmed deaths since first in country',fontsize=16)
+for i in range(first_InOrder,last__Inorder): 
+    actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
+    df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
+    FirstDate = df_plot[df_plot['Deaths']>0]['DateRep'].min()
+    df_plot = df_plot.loc[(df_plot['DateRep'] >= FirstDate)]
+    df_plot.reset_index(inplace=True)
+    df_plot.reset_index(inplace=True)
+    cumdeaths = np.cumsum(df_plot['Deaths'])
+       
+    if(actualloc=='Netherlands'):
+        ax.plot(df_plot['level_0'],np.log10(cumdeaths), linewidth=4)
+    else:
+        ax.plot(df_plot['level_0'],np.log10(cumdeaths)) 
+SubPlot_finalization(ax)
+ax.set_yscale('log')
 
-ax3.set_title('Infectionrate on confirmed cases (n-1)',fontsize=16)
+
+ax=ax5
+ax.set_title('Infectionrate on confirmed cases (n-1)',fontsize=16)
 for i in range(first_InOrder,last__Inorder): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
     df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
@@ -147,16 +187,18 @@ for i in range(first_InOrder,last__Inorder):
     CasusCum =np.cumsum(df_plot['Cases'])
     
     if(actualloc=='Netherlands'):
-        ax3.plot(df_plot['level_0'],CasusCum/CasusCum.shift(1,fill_value=0), linewidth=4)
+        ax.plot(df_plot['level_0'],CasusCum/CasusCum.shift(1,fill_value=0), linewidth=4)
     else:
-        ax3.plot(df_plot['level_0'],CasusCum/CasusCum.shift(1,fill_value=0))
-ax3.set_ylim([0, 2])    
-ax3.hlines(1,0,30,linestyles='dashed',label ='Growth',colors='r')
-SubPlot_finalization(ax3)
+        ax.plot(df_plot['level_0'],CasusCum/CasusCum.shift(1,fill_value=0))
+ax.set_ylim([0, 2])    
+ax.hlines(1,0,30,linestyles='dashed',label ='Growth',colors='r')
+SubPlot_finalization(ax)
+
 
 
 #death rate
-ax4.set_title('Deathrate on confirmed cases, cumulative',fontsize=16)
+ax=ax6
+ax.set_title('Cumulative deathrate on confirmed (!?!) cases',fontsize=16)
 for i in range(first_InOrder,last__Inorder): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
     df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
@@ -165,25 +207,17 @@ for i in range(first_InOrder,last__Inorder):
     df_plot.reset_index(inplace=True)
     df_plot.reset_index(inplace=True)
     if(actualloc=='Netherlands'):
-        ax4.plot(df_plot['level_0'],np.cumsum(df_plot['Deaths'])/np.cumsum(df_plot['Cases']), linewidth=4)
+        ax.plot(df_plot['level_0'],np.cumsum(df_plot['Deaths'])/np.cumsum(df_plot['Cases']), linewidth=4)
     else:
-         ax4.plot(df_plot['level_0'],np.cumsum(df_plot['Deaths'])/np.cumsum(df_plot['Cases']))
-SubPlot_finalization(ax4)
+         ax.plot(df_plot['level_0'],np.cumsum(df_plot['Deaths'])/np.cumsum(df_plot['Cases']))
+SubPlot_finalization(ax)
 
-
-
-ax5.set_title('Key parameteres',fontsize=20)
-
-clust_data = np.random.random((10,5))
-collabel=("Parameter", "Europe top " + str(last__Inorder)+"/nLast 10 days","Europe total" ,"The Netherlands/nLast 10 days","The Netherlands total")
-ax5.axis('tight')
-ax5.axis('off')
-the_table = ax5.table(cellText=clust_data,colLabels=collabel,loc='center')
 
 
 
 
 #plt.tight_layout(pad=0.4, w_pad=1, h_pad=2.0)
-plt.tight_layout()
+
 plt.subplots_adjust(top=0.88)
-plt.savefig('Europe.jpg', dpi='figure')
+plt.tight_layout()
+plt.savefig('chart_Europe.jpg', dpi='figure' ,bbox_inches='tight')
