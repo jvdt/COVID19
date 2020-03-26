@@ -102,7 +102,7 @@ ax5 = plt.subplot2grid((3, 2), (2, 0))
 ax6 = plt.subplot2grid((3, 2), (2, 1))
 fig.set_figheight(22)
 fig.set_figwidth(18)
-fig.suptitle('Europe and The Netherlands\n Chosen startdate Europe: '+FirstDate.strftime("%d-%m-%Y") ,fontsize=22,y=1.08)
+fig.suptitle('Europe and The Netherlands\n Chosen startdate Europe: '+FirstDate.strftime("%d-%m-%Y")+'\n'+'ECDC data update: '+today.strftime("%d-%m-%Y") ,fontsize=22,y=1.08)
 
 
 ax=ax1
