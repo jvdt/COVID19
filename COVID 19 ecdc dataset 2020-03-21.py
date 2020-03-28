@@ -16,42 +16,53 @@ from datetime import timedelta
 #https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide
 #https://www.geonames.org/countries/
 
+
 today = (date.today()- timedelta(0))
+yesterday = (date.today()- timedelta(1))
 
 strLinkStart = 'https://www.ecdc.europa.eu/sites/default/files/documents/COVID-19-geographic-disbtribution-worldwide-'
-strLinkYear  = today.strftime("%Y") 
-strLinkMonth = today.strftime("%m")
-strLinkday   = today.strftime("%d")
+strLinkDateToday  = today.strftime("%Y-%m-%d") 
+strLinkDateYesterday = yesterday.strftime("%Y-%m-%d") 
 strLinkEnd   = '.xlsx'
 
-link_ecdc = strLinkStart+strLinkYear+'-'+strLinkMonth+'-'+strLinkday+strLinkEnd
-link_ecdc
+link_ecdc_today = strLinkStart+strLinkDateToday+strLinkEnd
+link_ecdc_yesterday = strLinkStart+strLinkDateYesterday+strLinkEnd
+
+
 #link_ecdc = 'https://www.ecdc.europa.eu/sites/default/files/documents/COVID-19-geographic-disbtribution-worldwide-2020-03-18.xls'
 
-response  = requests.get(link_ecdc,stream=True)
+responseToday     = requests.get(link_ecdc_today,stream=True)
+responseYesterday = requests.get(link_ecdc_yesterday,stream=True)
 
-file_ecdc = link_ecdc.split('/')[-1]
 file_GeoId = 'GeoId.xls'
 first_InOrder = 0
 last__Inorder = 9
-
-
 totalbits = 0
 
-if response.status_code == 200:
-    with open(file_ecdc, 'wb') as f:
-        for chunk in response.iter_content(chunk_size=1024):
+
+
+file_ecdc_today = link_ecdc_today.split('/')[-1]
+file_ecdc_yesterday = link_ecdc_yesterday.split('/')[-1]
+
+if responseToday.status_code == 200:
+    with open(file_ecdc_today, 'wb') as f:
+        for chunk in responseToday.iter_content(chunk_size=1024):
             if chunk:
                 totalbits += 1024
                 print("Downloaded", totalbits*1025, "KB...")
                 f.write(chunk)
+    df_ecdc = pd.read_excel(file_ecdc_today)
+elif responseYesterday.status_code == 200:
+    with open(file_ecdc_today, 'wb') as f:
+        for chunk in responseToday.iter_content(chunk_size=1024):
+            if chunk:
+                totalbits += 1024
+                print("Downloaded", totalbits*1025, "KB...")
+                f.write(chunk)
+    df_ecdc = pd.read_excel(file_ecdc_yesterday)
 
-
-
-df_ecdc = pd.read_excel(file_ecdc)
 df_GeoId = pd.read_excel(file_GeoId)
-
-df_GeoId=df_GeoId.rename(columns={"ISO-3166-alpha2": "GeoId"})
+df_GeoId = df_GeoId.rename(columns={"ISO-3166-alpha2": "GeoId"})
    
 
 df_ecdc = pd.merge(df_ecdc,
@@ -77,7 +88,7 @@ df_ecdc_groupby = df_ecdc_basis.groupby(['Countries and territories','GeoId'])['
 
 df_ecdc_basis_number = df_ecdc_basis.groupby(['DateRep'])['Cases','Deaths'].sum()
 df_ecdc_basis_number['DateRep'] = df_ecdc_basis_number.index
-FirstDate = df_ecdc_basis_number[df_ecdc_basis_number['Cases']==0]['DateRep'].max()
+FirstDate = df_ecdc_basis_number[df_ecdc_basis_number['Cases']>0]['DateRep'].min()
 df_ecdc = df_ecdc_basis.loc[(df_ecdc_basis['DateRep'] >= FirstDate)]
 
 
@@ -140,8 +151,8 @@ ax.set_title('Cumulative confirmed cases since first case in country',fontsize=1
 for i in range(first_InOrder,last__Inorder): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
     df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
-    FirstDate = df_plot[df_plot['Cases']>0]['DateRep'].min()
-    df_plot = df_plot.loc[(df_plot['DateRep'] >= FirstDate)]
+    FirstDateC = df_plot[df_plot['Cases']>0]['DateRep'].min()
+    df_plot = df_plot.loc[(df_plot['DateRep'] >= FirstDateC)]
     df_plot.reset_index(inplace=True)
     df_plot.reset_index(inplace=True)
     cumcases = np.cumsum(df_plot['Cases'])
@@ -160,8 +171,8 @@ ax.set_title('Cumulative confirmed deaths since first in country',fontsize=16)
 for i in range(first_InOrder,last__Inorder): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
     df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
-    FirstDate = df_plot[df_plot['Deaths']>0]['DateRep'].min()
-    df_plot = df_plot.loc[(df_plot['DateRep'] >= FirstDate)]
+    FirstDateD = df_plot[df_plot['Deaths']>0]['DateRep'].min()
+    df_plot = df_plot.loc[(df_plot['DateRep'] >= FirstDateD)]
     df_plot.reset_index(inplace=True)
     df_plot.reset_index(inplace=True)
     cumdeaths = np.cumsum(df_plot['Deaths'])
@@ -179,8 +190,8 @@ ax.set_title('Infectionrate on confirmed cases (n-1)',fontsize=16)
 for i in range(first_InOrder,last__Inorder): 
     actualloc=df_ecdc_ordered['Countries and territories'].iloc[i]
     df_plot=df_ecdc[df_ecdc['Countries and territories']==actualloc].sort_values(by='DateRep')
-    FirstDate = df_plot[df_plot['Cases']>0]['DateRep'].min()
-    df_plot = df_plot.loc[(df_plot['DateRep'] >= FirstDate- timedelta(1))]
+    FirstDate5 = df_plot[df_plot['Cases']>0]['DateRep'].min()
+    df_plot = df_plot.loc[(df_plot['DateRep'] >= (FirstDate5- timedelta(1)))]
     df_plot.reset_index(inplace=True)
     df_plot.reset_index(inplace=True)
     
@@ -191,7 +202,7 @@ for i in range(first_InOrder,last__Inorder):
     else:
         ax.plot(df_plot['level_0'],CasusCum/CasusCum.shift(1,fill_value=0))
 ax.set_ylim([0, 2])    
-ax.hlines(1,0,30,linestyles='dashed',label ='Growth',colors='r')
+ax.hlines(1,0,40,linestyles='dashed',label ='Growth',colors='r')
 SubPlot_finalization(ax)
 
 
