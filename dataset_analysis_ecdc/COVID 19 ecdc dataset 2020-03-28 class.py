@@ -91,7 +91,7 @@ class COVID19:
 # Dataprep and from here use df_ecdc_basis as startingpoint.
     def produce_plot_1(self):
         print('Start for loop')
-        for a in range(0,2): 
+        for a in range(0,3): 
             print(a)
             continent = self.df_ecdc_Continent['Continent'].iloc[a]
             print(continent)
