@@ -40,7 +40,7 @@ link_recovered = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/mast
 file_confirmed = link_confirmed.split('/')[-1]
 file_deaths    = link_deaths.split('/')[-1]
 file_recovered = link_recovered.split('/')[-1]
-    
+
 if(downloadNew==True):
     
     response_confirmed  = requests.get(link_confirmed,stream=True)
@@ -83,8 +83,14 @@ df_confirmed  = pd.read_csv(file_confirmed)
 df_deaths     = pd.read_csv(file_deaths)
 df_recovered  = pd.read_csv(file_recovered)
 
+df_deaths = df_deaths.drop(['Lat', 'Long'], axis=1)
+df_deaths = pd.merge(df_confirmed[df_confirmed.columns[0:4]], df_deaths, how='left', on = ['Country/Region','Province/State'])
 
-MinimumCases =10
+df_recovered = df_recovered.drop(['Lat', 'Long'], axis=1)
+df_recovered = pd.merge(df_confirmed[df_confirmed.columns[0:4]], df_recovered, how='left', on = ['Country/Region','Province/State'])
+
+
+MinimumCases = 10
 #df_confirmed_01 = df_confirmed.groupby('Date')['Value'].sum()
 #df_deaths_01    = df_deaths.groupby('Date')['Value'].sum()
 #df_recovered_01 = df_recovered.groupby('Date')['Value'].sum()
